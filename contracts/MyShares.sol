@@ -33,9 +33,9 @@ contract MyShares is ERC884, Ownable, MintableToken {
     *   
      **/    
     constructor(string _name, string _symbol, uint256 _totalSupply) public {
-        name_ = _name;
-        symbol_ = _symbol;
-        decimals_ = uint8(0);
+        name = _name;
+        symbol = _symbol;
+        decimals = uint8(0);
         owner = msg.sender;
         totalSupply_ = _totalSupply;
 

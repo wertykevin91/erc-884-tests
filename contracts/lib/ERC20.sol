@@ -16,10 +16,10 @@ contract ERC20 is ERC20Basic {
 
     // ERC20
 
-    string public name_;
-    string public symbol_;
-    uint8 public decimals_;
-    uint256 public totalSupply_;
+    string public name;
+    string public symbol;
+    uint8 public decimals;
+    uint256 internal totalSupply_;
 
     mapping (address => uint256) internal balances;
     mapping (address => mapping (address => uint256)) internal allowed;
