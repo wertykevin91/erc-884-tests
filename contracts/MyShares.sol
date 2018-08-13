@@ -175,7 +175,7 @@ contract MyShares is ERC884, Ownable, MintableToken {
         return balances[_addr];
     }
 
-    function transfer(address _to, uint256 _value) public onlyShareholder(msg.sender) returns(bool) {
+    function transfer(address _to, uint256 _value) public onlyShareholder(msg.sender) onlyVerifiedAddress(_to) returns(bool) {
         _transferTokens(msg.sender, _to, _value);
         emit Transfer(msg.sender, _to, _value);
         return true;
