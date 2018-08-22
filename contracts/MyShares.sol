@@ -24,7 +24,7 @@ contract MyShares is ERC884, Ownable, MintableToken {
     **/
     address[] private shareholders;
 
-    // TODO: verifiy if cancellation records is actually necessary. 
+    // TODO: verifiy if cancellation records is actually necessary.
     // We should assume that users will do their own DD elsewhere
 
     mapping (address => address) private supersededAddresses;
@@ -72,7 +72,7 @@ contract MyShares is ERC884, Ownable, MintableToken {
     }
 
     function _transferTokens(address _from, address _to, uint256 _value) private {
-        require(_value > 0 && balances[_from] >= _value);
+        require(_value > 0 && balances[_from] >= _value, "Insufficient balance");
 
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -93,12 +93,12 @@ contract MyShares is ERC884, Ownable, MintableToken {
     // Section modifiers
 
     modifier onlyVerifiedAddress(address _address) {
-        require(verifiedAddressHashes[_address] != bytes32(0));
+        require(verifiedAddressHashes[_address] != bytes32(0), "No such address");
         _;
     }
 
     modifier onlyShareholder(address _address) {
-        require(shareholdersIndex[_address] != 0);
+        require(shareholdersIndex[_address] != 0, "No such address");
         _;
     }
 
@@ -136,19 +136,20 @@ contract MyShares is ERC884, Ownable, MintableToken {
     }
 
     function addVerified(address _addr, bytes32 _hash) public onlyOwner {
-        require(verifiedAddressHashes[_addr] == bytes32(0));
+        require(supersededAddresses[_addr] == address(0), "Address is superseded");
+        require(verifiedAddressHashes[_addr] == bytes32(0), "No such address");
         verifiedAddressHashes[_addr] = _hash;
         emit VerifiedAddressAdded(_addr, _hash, msg.sender);
     }
 
     function removeVerified(address _addr) public onlyOwner  onlyVerifiedAddress(_addr) {
-        require(balances[_addr] == 0);
+        require(balances[_addr] == 0, "Address has balance");
         verifiedAddressHashes[_addr] = bytes32(0);
         emit VerifiedAddressRemoved(_addr, msg.sender); 
     }
 
     function updateVerified(address _addr, bytes32 _hash) public onlyOwner onlyVerifiedAddress(_addr) {
-        require(_hash != bytes32(0));
+        require(_hash != bytes32(0), "Hash is empty.");
         bytes32 oldHash = verifiedAddressHashes[_addr];
         verifiedAddressHashes[_addr] = _hash;
         emit VerifiedAddressUpdated(_addr, oldHash, _hash, msg.sender);
@@ -159,7 +160,7 @@ contract MyShares is ERC884, Ownable, MintableToken {
     onlyVerifiedAddress(_oldAddr) 
     onlyShareholder(_oldAddr)
     onlyVerifiedAddress(_newAddr) {
-        require(shareholdersIndex[_newAddr] == 0);
+        require(shareholdersIndex[_newAddr] == 0, "Is not shareholder.");
         supersededAddresses[_oldAddr] = _newAddr;
         _transferTokens(_oldAddr, _newAddr, balances[_oldAddr]);
         emit VerifiedAddressSuperseded(_oldAddr, _newAddr, msg.sender);
@@ -183,8 +184,8 @@ contract MyShares is ERC884, Ownable, MintableToken {
 
     function transferFrom(address _from, address _to, uint256 _value) public returns(bool) {
         uint256 allowedTransferSender = allowed[_from][msg.sender];
-        require(_value <= allowedTransferSender && balances[_from] >= _value);
-        require(_to != address(0));
+        require(_value <= allowedTransferSender && balances[_from] >= _value, "Insufficient allowance");
+        require(_to != address(0), "Address error");
         allowed[_from][msg.sender] = allowedTransferSender.sub(_value);
         _transferTokens(_from, _to, _value);
         emit Transfer(msg.sender, _to, _value);
@@ -196,9 +197,10 @@ contract MyShares is ERC884, Ownable, MintableToken {
     }
 
     function approve(address _spender, uint256 _value) public onlyVerifiedAddress(_spender) returns(bool) {
-        require(balances[_spender] > _value);
+        require(balances[_spender] > _value, "Insufficient balance");
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
+
         return true;
     }
 }

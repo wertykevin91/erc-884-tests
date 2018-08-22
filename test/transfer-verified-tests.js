@@ -20,9 +20,14 @@ contract('MyShares', async(accounts) => {
         let result = await mySharesContract.transfer(secondAccount, totalSupply/2);
         //console.log(result);
 
+        let isShareholder1 = await mySharesContract.isHolder.call(ownerAccount);
         let balance1 = await mySharesContract.balanceOf.call(ownerAccount);
         assert.equal(balance1.toNumber(), totalSupply/2, "Acc 1 Should be: " + totalSupply / 2);
+        assert.equal(isShareholder1, true, "first account has coin.");
+
+        let isShareholder2 = await mySharesContract.isHolder.call(secondAccount);
         let balance2 = await mySharesContract.balanceOf.call(secondAccount);
         assert.equal(balance2.toNumber(), totalSupply/2, "Acc 2 Should be: " + totalSupply / 2);
+        assert.equal(isShareholder2, true, "second account has coin.");
     });
 });
